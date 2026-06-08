@@ -1,0 +1,13 @@
+{
+  "output": {
+    "filePath": "repomix-output.txt"
+  },
+  "ignore": {
+    "customPatterns": [
+      "node_modules",
+      ".next",
+      "dist",
+      ".git"
+    ]
+  }
+}

@@ -15,15 +15,35 @@ export default function FinalPresentationPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('jane_final_speech');
-    if (saved) {
+    const fetchFinalSpeech = async () => {
       try {
-        setSpeech(JSON.parse(saved));
+        // Try Cloud First
+        const response = await fetch('/api/presentations?studentName=Jane&weekId=Week 1');
+        if (response.ok) {
+          const json = await response.json();
+          if (json.data) {
+            setSpeech(json.data);
+            setLoading(false);
+            return;
+          }
+        }
       } catch (e) {
-        console.error("Failed to parse speech");
+        console.error("Cloud fetch failed");
       }
-    }
-    setLoading(false);
+
+      // Fallback to Local Storage
+      const saved = localStorage.getItem('jane_final_speech');
+      if (saved) {
+        try {
+          setSpeech(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse local speech");
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchFinalSpeech();
   }, []);
 
   if (loading) {

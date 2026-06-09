@@ -13,35 +13,55 @@ export default function PresentationStructure() {
   const [conclusionText, setConclusionText] = useState("");
 
   useEffect(() => {
-    // First, check if a full draft already exists (for users returning to edit)
-    const savedDraft = localStorage.getItem('jane_final_speech');
-    if (savedDraft) {
+    const fetchDraft = async () => {
       try {
-        const parsedDraft = JSON.parse(savedDraft);
-        setIntroText(parsedDraft.intro || "");
-        setBodyText(parsedDraft.body || "");
-        setConclusionText(parsedDraft.conclusion || "");
-        return; // Exit early so we don't overwrite the body with raw Q&A
+        // 1. Try to fetch from the cloud database first
+        const response = await fetch('/api/presentations?studentName=Jane&weekId=Week 1');
+        if (response.ok) {
+          const json = await response.json();
+          if (json.data) {
+            setIntroText(json.data.intro || "");
+            setBodyText(json.data.body || "");
+            setConclusionText(json.data.conclusion || "");
+            return; // Exit early if cloud data exists
+          }
+        }
       } catch (e) {
-        console.error("Failed to parse saved draft");
+        console.error("Cloud fetch failed, falling back to local storage", e);
       }
-    }
 
-    // Fallback: If no draft exists, generate the body from raw Q&A answers
-    const savedAnswers = localStorage.getItem('jane_qa_answers');
-    if (savedAnswers) {
-      try {
-        const parsed = JSON.parse(savedAnswers);
-        const formattedBody = parsed.map((answer: string, index: number) => {
-          const questionText = QUESTIONS[index]?.text || `Question ${index + 1}`;
-          return `Q: ${questionText}\n${answer}`;
-        }).join('\n\n------------------------\n\n');
-        
-        setBodyText(formattedBody);
-      } catch (e) {
-        console.error("Failed to parse answers");
+      // 2. Fallback to Local Storage Full Draft
+      const savedDraft = localStorage.getItem('jane_final_speech');
+      if (savedDraft) {
+        try {
+          const parsedDraft = JSON.parse(savedDraft);
+          setIntroText(parsedDraft.intro || "");
+          setBodyText(parsedDraft.body || "");
+          setConclusionText(parsedDraft.conclusion || "");
+          return;
+        } catch (e) {
+          console.error("Failed to parse saved draft");
+        }
       }
-    }
+
+      // 3. Fallback to Raw Q&A Answers
+      const savedAnswers = localStorage.getItem('jane_qa_answers');
+      if (savedAnswers) {
+        try {
+          const parsed = JSON.parse(savedAnswers);
+          const formattedBody = parsed.map((answer: string, index: number) => {
+            const questionText = QUESTIONS[index]?.text || `Question ${index + 1}`;
+            return `Q: ${questionText}\n${answer}`;
+          }).join('\n\n------------------------\n\n');
+          
+          setBodyText(formattedBody);
+        } catch (e) {
+          console.error("Failed to parse answers");
+        }
+      }
+    };
+
+    fetchDraft();
   }, []);
 
   const [isSaving, setIsSaving] = useState(false);

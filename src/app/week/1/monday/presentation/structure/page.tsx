@@ -44,14 +44,52 @@ export default function PresentationStructure() {
     }
   }, []);
 
-  const handleFinish = () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleFinish = async (e?: React.MouseEvent | React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // 0. Frontend Validation Guard
+    if (!introText.trim() || !bodyText.trim() || !conclusionText.trim()) {
+      alert("Please draft all three sections (Introduction, Body, and Conclusion) before saving!");
+      return;
+    }
+
+    setIsSaving(true);
     const finalSpeech = {
+      studentName: 'Jane',
+      weekId: 'Week 1',
+      topic: 'Agentic AI',
       intro: introText,
       body: bodyText,
       conclusion: conclusionText
     };
+
+    // 1. Keep saving to local storage for immediate UI hydration
     localStorage.setItem('jane_final_speech', JSON.stringify(finalSpeech));
-    router.push('/week/1/monday/presentation/final');
+
+    // 2. Send the data to MongoDB
+    try {
+      const response = await fetch('/api/presentations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalSpeech),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save to database');
+      }
+
+      // 3. Navigate to the final view
+      router.push('/week/1/monday/presentation/final');
+    } catch (error) {
+      console.error(error);
+      // Use setTimeout to push the alert to the end of the execution queue
+      setTimeout(() => alert("There was an issue saving to the cloud, but your local draft is safe!"), 100);
+      router.push('/week/1/monday/presentation/final');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -150,10 +188,11 @@ export default function PresentationStructure() {
       <div className="mt-12 flex flex-col items-center gap-6">
         <button
           onClick={handleFinish}
-          className="group flex items-center gap-3 px-12 py-6 bg-slate-900 text-white font-black rounded-3xl hover:bg-slate-800 transition-all shadow-2xl hover:shadow-slate-200 hover:-translate-y-1 text-xl"
+          disabled={isSaving}
+          className="group flex items-center gap-3 px-12 py-6 bg-slate-900 text-white font-black rounded-3xl hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-2xl hover:shadow-slate-200 hover:-translate-y-1 text-xl"
         >
-          <span>Finish & Save</span>
-          <Send size={24} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          <span>{isSaving ? 'Saving...' : 'Finish & Save'}</span>
+          <Send size={24} className={`group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform ${isSaving ? 'animate-pulse' : ''}`} />
         </button>
         <p className="text-slate-400 font-medium text-center">
           Great job! Clicking above will save your draft and return you to the home dashboard.

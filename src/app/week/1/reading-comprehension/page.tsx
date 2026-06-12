@@ -16,9 +16,11 @@ export default function ReadingComprehensionPage() {
 
   // --- HIGHLIGHTER STATE ---
   const [articleHtml, setArticleHtml] = useState([...READING_ARTICLE.content]);
-  const [highlightColor, setHighlightColor] = useState("bg-yellow-200");
+  const [activeTool, setActiveTool] = useState("bg-yellow-200");
 
   const handleHighlight = (idx: number, e: React.MouseEvent<HTMLParagraphElement>) => {
+    if (activeTool === 'eraser') return; // Don't highlight while erasing
+
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) return;
 
@@ -27,7 +29,7 @@ export default function ReadingComprehensionPage() {
 
     const range = selection.getRangeAt(0);
     const span = document.createElement("span");
-    span.className = `${highlightColor} px-1 rounded transition-colors`;
+    span.className = `${activeTool} px-1 rounded transition-colors cursor-pointer`;
     
     try {
       // Wrap the selected text in the colored span
@@ -44,6 +46,20 @@ export default function ReadingComprehensionPage() {
       selection.removeAllRanges();
     } catch (err) {
       console.error("Highlighting error:", err);
+    }
+  };
+
+  const handleParagraphClick = (idx: number, e: React.MouseEvent<HTMLParagraphElement>) => {
+    const target = e.target as HTMLElement;
+    
+    // If the eraser is active and they clicked a highlighted span
+    if (activeTool === 'eraser' && target.tagName === 'SPAN' && target.className.includes('bg-')) {
+      const textNode = document.createTextNode(target.textContent || '');
+      target.parentNode?.replaceChild(textNode, target);
+
+      const updatedHtml = [...articleHtml];
+      updatedHtml[idx] = e.currentTarget.innerHTML;
+      setArticleHtml(updatedHtml);
     }
   };
 
@@ -157,31 +173,46 @@ export default function ReadingComprehensionPage() {
           <div className="flex items-center gap-4 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-10">
             <div className="flex items-center gap-2 mr-auto">
               <Highlighter size={20} className="text-slate-500" />
-              <span className="font-bold text-slate-700 text-sm uppercase tracking-wider hidden sm:inline">Highlighter</span>
+              <span className="font-bold text-slate-700 text-sm uppercase tracking-wider hidden sm:inline">Tools</span>
             </div>
-            <div className="flex gap-3">
+            
+            <div className="flex items-center gap-3">
               <button 
-                onClick={() => setHighlightColor('bg-yellow-200')} 
-                className={`w-8 h-8 rounded-full bg-yellow-200 border-2 transition-all ${highlightColor === 'bg-yellow-200' ? 'border-yellow-500 scale-110 ring-4 ring-yellow-100' : 'border-transparent hover:scale-105'}`} 
-                title="Yellow"
+                onClick={() => setActiveTool('bg-yellow-200')} 
+                className={`w-8 h-8 rounded-full bg-yellow-200 border-2 transition-all ${activeTool === 'bg-yellow-200' ? 'border-yellow-500 scale-110 ring-4 ring-yellow-100' : 'border-transparent hover:scale-105'}`} 
+                title="Yellow Marker"
               />
               <button 
-                onClick={() => setHighlightColor('bg-emerald-200')} 
-                className={`w-8 h-8 rounded-full bg-emerald-200 border-2 transition-all ${highlightColor === 'bg-emerald-200' ? 'border-emerald-500 scale-110 ring-4 ring-emerald-100' : 'border-transparent hover:scale-105'}`} 
-                title="Green"
+                onClick={() => setActiveTool('bg-emerald-200')} 
+                className={`w-8 h-8 rounded-full bg-emerald-200 border-2 transition-all ${activeTool === 'bg-emerald-200' ? 'border-emerald-500 scale-110 ring-4 ring-emerald-100' : 'border-transparent hover:scale-105'}`} 
+                title="Green Marker"
               />
               <button 
-                onClick={() => setHighlightColor('bg-pink-200')} 
-                className={`w-8 h-8 rounded-full bg-pink-200 border-2 transition-all ${highlightColor === 'bg-pink-200' ? 'border-pink-500 scale-110 ring-4 ring-pink-100' : 'border-transparent hover:scale-105'}`} 
-                title="Pink"
+                onClick={() => setActiveTool('bg-pink-200')} 
+                className={`w-8 h-8 rounded-full bg-pink-200 border-2 transition-all ${activeTool === 'bg-pink-200' ? 'border-pink-500 scale-110 ring-4 ring-pink-100' : 'border-transparent hover:scale-105'}`} 
+                title="Pink Marker"
               />
+              
+              <div className="w-px h-6 bg-slate-300 mx-1" />
+              
+              <button 
+                onClick={() => setActiveTool('eraser')} 
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full border-2 transition-all font-bold text-sm ${activeTool === 'eraser' ? 'border-slate-400 bg-slate-200 text-slate-800' : 'border-transparent text-slate-500 hover:bg-slate-200'}`}
+                title="Eraser Tool"
+              >
+                <Eraser size={16} /> Eraser
+              </button>
             </div>
-            <div className="w-px h-6 bg-slate-300 mx-2" />
+
             <button 
-              onClick={() => setArticleHtml([...READING_ARTICLE.content])} 
-              className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-rose-600 transition-colors"
+              onClick={() => {
+                if(window.confirm('Are you sure you want to clear all highlights?')) {
+                  setArticleHtml([...READING_ARTICLE.content]);
+                }
+              }} 
+              className="ml-2 text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors underline underline-offset-2"
             >
-              <Eraser size={18} /> <span className="hidden sm:inline">Clear</span>
+              Clear All
             </button>
           </div>
 
@@ -190,8 +221,9 @@ export default function ReadingComprehensionPage() {
               <p 
                 key={idx} 
                 onMouseUp={(e) => handleHighlight(idx, e)}
+                onClick={(e) => handleParagraphClick(idx, e)}
                 dangerouslySetInnerHTML={{ __html: htmlString }}
-                className="text-lg text-slate-700 leading-relaxed font-serif selection:bg-slate-200"
+                className={`text-lg text-slate-700 leading-relaxed font-serif selection:bg-slate-200 ${activeTool === 'eraser' ? 'cursor-crosshair' : 'cursor-text'}`}
               />
             ))}
           </div>

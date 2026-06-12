@@ -56,157 +56,41 @@ public/vercel.svg
 public/window.svg
 README.md
 repomix.config.json
+reset.mjs
 src/app/api/presentations/route.ts
+src/app/api/quiz/route.ts
+src/app/api/writing/route.ts
 src/app/favicon.ico
 src/app/globals.css
 src/app/layout.tsx
 src/app/page.tsx
 src/app/week/[weekId]/page.tsx
+src/app/week/1/literature/multiple-choice/page.tsx
+src/app/week/1/literature/page.tsx
+src/app/week/1/literature/writing/page.tsx
 src/app/week/1/monday/page.tsx
 src/app/week/1/monday/presentation/final/page.tsx
 src/app/week/1/monday/presentation/page.tsx
 src/app/week/1/monday/presentation/structure/page.tsx
+src/app/week/1/reading-comprehension/page.tsx
+src/app/week/1/vocabmon/page.tsx
 src/components/Accordion.tsx
 src/components/Navbar.tsx
 src/components/QuestionItem.tsx
 src/components/VocabularyHighlight.tsx
 src/data/agentic-ai.ts
+src/data/literature.ts
+src/data/reading-comprehension.ts
 src/lib/mongodb.ts
 src/models/Presentation.ts
+src/models/Quiz.ts
+src/models/WritingResponse.ts
 src/types/reading.ts
 tsconfig.json
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="src/app/api/presentations/route.ts">
-import { NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/mongodb';
-import Presentation from '@/models/Presentation';
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    await connectToDatabase();
-
-    const newPresentation = await Presentation.create(body);
-
-    return NextResponse.json(
-      { message: 'Presentation saved successfully!', data: newPresentation },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error('Database Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to save presentation' },
-      { status: 500 }
-    );
-  }
-}
-</file>
-
-<file path="src/lib/mongodb.ts">
-import dns from 'node:dns/promises';
-import mongoose from 'mongoose';
-
-dns.setServers(['1.1.1.1', '8.8.8.8']);
-
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
-let cached = (global as any).mongoose;
-
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
-
-async function connectToDatabase() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-  if (!cached.promise) {
-    const opts = { bufferCommands: false };
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
-    });
-  }
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
-  }
-  return cached.conn;
-}
-
-export default connectToDatabase;
-</file>
-
-<file path="src/models/Presentation.ts">
-import mongoose, { Schema, models } from 'mongoose';
-
-const PresentationSchema = new Schema({
-  studentName: { type: String, required: true, default: 'Jane' },
-  weekId: { type: String, required: true },
-  topic: { type: String, required: true },
-  intro: { type: String, required: true },
-  body: { type: String, required: true },
-  conclusion: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
-const Presentation = models.Presentation || mongoose.model('Presentation', PresentationSchema);
-
-export default Presentation;
-</file>
-
-<file path=".gitignore">
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-</file>
 
 <file path="AGENTS.md">
 <!-- BEGIN:nextjs-agent-rules -->
@@ -281,45 +165,6 @@ export default config;
 <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
 </file>
 
-<file path="README.md">
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-</file>
-
 <file path="repomix.config.json">
 {
   "output": {
@@ -332,6 +177,162 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
       "dist",
       ".git"
     ]
+  }
+}
+</file>
+
+<file path="reset.mjs">
+import dns from 'node:dns/promises';
+import mongoose from 'mongoose';
+import { config } from 'dotenv';
+
+// 1. Force public DNS to avoid the Windows ISP querySrv bug
+dns.setServers(['1.1.1.1', '8.8.8.8']);
+
+// 2. Load the environment variables from .env.local
+config({ path: '.env.local' });
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error("❌ Error: MONGODB_URI is not defined in .env.local");
+  process.exit(1);
+}
+
+// 3. Define minimal Schemas so Mongoose knows what to delete
+const Presentation = mongoose.models.Presentation || mongoose.model('Presentation', new mongoose.Schema({ studentName: String, weekId: String }));
+const Quiz = mongoose.models.Quiz || mongoose.model('Quiz', new mongoose.Schema({ studentName: String, weekId: String }));
+const WritingResponse = mongoose.models.WritingResponse || mongoose.model('WritingResponse', new mongoose.Schema({ studentName: String, weekId: String }));
+
+// 4. The Reset Function
+async function reset(weekNum, moduleType, studentName = 'Jane') {
+  const weekId = `Week ${weekNum}`;
+
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log(`\n🔌 Connected to MongoDB Atlas...`);
+
+    if (moduleType === 'reading') {
+      console.log(`🧹 Clearing Reading (Presentations) for ${studentName}, ${weekId}...`);
+      const result = await Presentation.deleteMany({ studentName, weekId });
+      console.log(`✅ Deleted ${result.deletedCount} presentation draft(s).`);
+    } 
+    else if (moduleType === 'literature') {
+      console.log(`🧹 Clearing Literature (Quiz & Writing) for ${studentName}, ${weekId}...`);
+      
+      const quizResult = await Quiz.deleteMany({ studentName, weekId });
+      console.log(`✅ Deleted ${quizResult.deletedCount} quiz record(s).`);
+
+      const writingResult = await WritingResponse.deleteMany({ studentName, weekId });
+      console.log(`✅ Deleted ${writingResult.deletedCount} writing response(s).`);
+    } 
+    else {
+      console.log(`❌ Unknown module type: "${moduleType}". Please use "reading" or "literature".`);
+    }
+
+  } catch (error) {
+    console.error("❌ Database Error:", error);
+  } finally {
+    await mongoose.disconnect();
+    console.log(`🔌 Disconnected from database.\n`);
+    process.exit(0);
+  }
+}
+
+// 5. Command Line Execution Logic
+const args = process.argv.slice(2);
+if (args.length < 2) {
+  console.log("\n⚠️ Usage Error. Please provide the Week Number and Module Type.");
+  console.log("Example 1: node reset.mjs 1 reading");
+  console.log("Example 2: node reset.mjs 1 literature\n");
+  process.exit(1);
+}
+
+reset(args[0], args[1]);
+</file>
+
+<file path="src/app/api/quiz/route.ts">
+import { NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/mongodb';
+import Quiz from '@/models/Quiz';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const studentName = searchParams.get('studentName') || 'Jane';
+    const weekId = searchParams.get('weekId') || 'Week 1';
+    const quizId = searchParams.get('quizId') || 'literature-ch1';
+
+    await connectToDatabase();
+
+    const quiz = await Quiz.findOne({ studentName, weekId, quizId });
+
+    if (!quiz) {
+      return NextResponse.json({ message: 'No saved quiz found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: quiz }, { status: 200 });
+  } catch (error) {
+    console.error('Database Fetch Error:', error);
+    return NextResponse.json({ error: 'Failed to fetch quiz' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    await connectToDatabase();
+
+    // Use findOneAndUpdate with "upsert: true" to overwrite existing attempts or create a new one
+    const updatedQuiz = await Quiz.findOneAndUpdate(
+      { studentName: body.studentName, weekId: body.weekId, quizId: body.quizId },
+      body,
+      { new: true, upsert: true }
+    );
+
+    return NextResponse.json({ message: 'Quiz saved successfully!', data: updatedQuiz }, { status: 200 });
+  } catch (error) {
+    console.error('Database Error:', error);
+    return NextResponse.json({ error: 'Failed to save quiz' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="src/app/api/writing/route.ts">
+import { NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/mongodb';
+import WritingResponse from '@/models/WritingResponse';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const studentName = searchParams.get('studentName') || 'Jane';
+    const weekId = searchParams.get('weekId') || 'Week 1';
+    const assignmentId = searchParams.get('assignmentId') || 'literature-ch1-writing';
+
+    await connectToDatabase();
+    const response = await WritingResponse.findOne({ studentName, weekId, assignmentId });
+
+    if (!response) return NextResponse.json({ message: 'No saved response found' }, { status: 404 });
+    return NextResponse.json({ data: response }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch writing response' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    await connectToDatabase();
+
+    const updatedResponse = await WritingResponse.findOneAndUpdate(
+      { studentName: body.studentName, weekId: body.weekId, assignmentId: body.assignmentId },
+      body,
+      { new: true, upsert: true }
+    );
+
+    return NextResponse.json({ message: 'Response saved successfully!', data: updatedResponse }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to save response' }, { status: 500 });
   }
 }
 </file>
@@ -363,6 +364,507 @@ export default async function WeekEmptyState({ params }: { params: Promise<{ wee
         <Home size={20} />
         <span>Return to Dashboard</span>
       </Link>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/week/1/literature/multiple-choice/page.tsx">
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { ArrowLeft, CheckCircle, XCircle, ArrowRight, RotateCcw } from "lucide-react";
+import { MULTIPLE_CHOICE_QUESTIONS } from "@/data/literature";
+
+export default function MultipleChoiceQuiz() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+
+  // Fetch existing quiz from database on load
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      try {
+        const res = await fetch('/api/quiz?studentName=Jane&weekId=Week 1&quizId=literature-ch1');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setAnswers(json.data.answers);
+            setScore(json.data.score);
+            setShowResults(true); // Jump straight to results if they already took it
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch past quiz", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuiz();
+  }, []);
+
+  const currentQuestion = MULTIPLE_CHOICE_QUESTIONS[currentIndex];
+
+  const handleSelect = (optionId: string) => {
+    if (isAnswered) return;
+    
+    setSelectedOption(optionId);
+    setIsAnswered(true);
+    
+    // Record this specific answer
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionId }));
+
+    if (optionId === currentQuestion.correctAnswer) {
+      setScore((prev) => prev + 1);
+    }
+  };
+
+  const handleNext = async () => {
+    if (currentIndex < MULTIPLE_CHOICE_QUESTIONS.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setSelectedOption(null);
+      setIsAnswered(false);
+    } else {
+      // End of quiz: Save to Database
+      try {
+        await fetch('/api/quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: 'Jane',
+            weekId: 'Week 1',
+            quizId: 'literature-ch1',
+            answers: answers,
+            score: score,
+            totalQuestions: MULTIPLE_CHOICE_QUESTIONS.length
+          })
+        });
+      } catch (e) {
+        console.error("Failed to save to cloud", e);
+      }
+      setShowResults(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setScore(0);
+    setAnswers({});
+    setShowResults(false);
+  };
+
+  const getOptionStyles = (optionId: string) => {
+    if (!isAnswered) {
+      return "border-slate-200 hover:border-blue-300 hover:bg-slate-50 cursor-pointer";
+    }
+    if (optionId === currentQuestion.correctAnswer) {
+      return "border-emerald-500 bg-emerald-50 text-emerald-800 font-bold ring-2 ring-emerald-500/20";
+    }
+    if (selectedOption === optionId && optionId !== currentQuestion.correctAnswer) {
+      return "border-red-400 bg-red-50 text-red-700 line-through";
+    }
+    return "border-slate-200 opacity-50 cursor-default";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // --- RESULTS SCREEN ---
+  if (showResults) {
+    const isPerfect = score === MULTIPLE_CHOICE_QUESTIONS.length;
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className={`p-12 rounded-3xl text-center shadow-lg border-2 mb-12 ${isPerfect ? 'bg-emerald-50 border-emerald-200' : 'bg-blue-50 border-blue-200'}`}>
+          <h2 className="text-4xl font-black mb-4 text-slate-900">Quiz Completed!</h2>
+          <p className="text-2xl font-medium text-slate-700 mb-8">
+            You scored <span className="font-bold text-4xl mx-1">{score}</span> out of {MULTIPLE_CHOICE_QUESTIONS.length}
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={handleRestart} className="flex items-center gap-2 px-6 py-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-sm">
+              <RotateCcw size={20} /> Try Again
+            </button>
+            <Link href="/week/1/literature" className="flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl hover:-translate-y-1">
+              Back to Hub <ArrowRight size={20} />
+            </Link>
+          </div>
+        </div>
+
+        {/* Answer Review Section */}
+        <div className="space-y-6">
+          <h3 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
+            <CheckCircle className="text-blue-600" /> Your Answer Review
+          </h3>
+          {MULTIPLE_CHOICE_QUESTIONS.map((q) => {
+            const studentChoice = answers[q.id];
+            const isCorrect = studentChoice === q.correctAnswer;
+            const chosenOptionText = q.options.find(o => o.id === studentChoice)?.text || "Did not answer";
+
+            return (
+              <div key={q.id} className="p-6 md:p-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <p className="font-bold text-lg text-slate-800 mb-4">{q.id}. {q.text}</p>
+                <div className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                  <p className={`font-semibold ${isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>
+                    Your Answer: {chosenOptionText}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // --- QUIZ SCREEN ---
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/week/1/literature" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold">
+          <ArrowLeft size={20} /> Back to Hub
+        </Link>
+        <div className="flex items-center gap-4">
+          <span className="text-slate-400 font-bold text-sm tracking-widest uppercase">
+            Question {currentIndex + 1} of {MULTIPLE_CHOICE_QUESTIONS.length}
+          </span>
+          <div className="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-600 transition-all duration-500 ease-out" 
+              style={{ width: `${((currentIndex) / MULTIPLE_CHOICE_QUESTIONS.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-8 md:p-12 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-right-8 duration-300">
+        <h2 className="text-2xl md:text-3xl font-black text-slate-800 leading-tight mb-10">
+          {currentQuestion.text}
+        </h2>
+
+        <div className="space-y-4">
+          {currentQuestion.options.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => handleSelect(opt.id)}
+              disabled={isAnswered}
+              className={`w-full text-left p-5 rounded-2xl border-2 transition-all flex items-start gap-4 ${getOptionStyles(opt.id)}`}
+            >
+              <span className="font-black text-lg uppercase flex-shrink-0">{opt.id}.</span>
+              <span className="leading-relaxed text-lg pt-0.5">{opt.text}</span>
+              
+              {isAnswered && opt.id === currentQuestion.correctAnswer && (
+                <CheckCircle className="text-emerald-500 ml-auto flex-shrink-0 mt-1" size={24} />
+              )}
+              {isAnswered && selectedOption === opt.id && opt.id !== currentQuestion.correctAnswer && (
+                <XCircle className="text-red-500 ml-auto flex-shrink-0 mt-1" size={24} />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {isAnswered && (
+          <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className={`p-6 rounded-2xl border ${selectedOption === currentQuestion.correctAnswer ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+              <h4 className={`font-black mb-2 flex items-center gap-2 ${selectedOption === currentQuestion.correctAnswer ? 'text-emerald-800' : 'text-red-800'}`}>
+                {selectedOption === currentQuestion.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
+              </h4>
+              <p className={`leading-relaxed text-lg ${selectedOption === currentQuestion.correctAnswer ? 'text-emerald-700' : 'text-red-700'}`}>
+                <span className="font-bold mr-2">Explanation:</span> 
+                {currentQuestion.explanation}
+              </p>
+            </div>
+            
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl hover:-translate-y-1"
+              >
+                {currentIndex === MULTIPLE_CHOICE_QUESTIONS.length - 1 ? 'Finish & View Results' : 'Next Question'} 
+                <ArrowRight size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/week/1/literature/page.tsx">
+"use client";
+
+import Link from "next/link";
+import { BookOpen, CheckSquare, Edit3 } from "lucide-react";
+
+export default function LiteratureHub() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-16">
+      <header className="mb-12 text-center">
+        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+          <BookOpen size={32} />
+        </div>
+        <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">The Giver: Chapter 1</h1>
+        <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          Complete both the comprehension check and the writing response below to finish your homework for this chapter.
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Multiple Choice Card */}
+        <Link 
+          href="/week/1/literature/multiple-choice"
+          className="group bg-white border-2 border-slate-100 rounded-3xl p-8 hover:border-blue-400 hover:shadow-xl hover:-translate-y-1 transition-all"
+        >
+          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+            <CheckSquare size={24} />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">Multiple Choice</h2>
+          <p className="text-slate-600 mb-6 leading-relaxed">
+            Test your basic understanding of the chapter's events, characters, and rules.
+          </p>
+          <div className="flex items-center text-blue-600 font-bold text-sm uppercase tracking-wider">
+            Start Quiz →
+          </div>
+        </Link>
+
+        {/* Writing Response Card */}
+        <Link 
+          href="/week/1/literature/writing"
+          className="group bg-white border-2 border-slate-100 rounded-3xl p-8 hover:border-emerald-400 hover:shadow-xl hover:-translate-y-1 transition-all"
+        >
+          <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+            <Edit3 size={24} />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors">Writing Response</h2>
+          <p className="text-slate-600 mb-6 leading-relaxed">
+            Analyze the text deeply and share your personal thoughts on the community's strict rules.
+          </p>
+          <div className="flex items-center text-emerald-600 font-bold text-sm uppercase tracking-wider">
+            Start Writing →
+          </div>
+        </Link>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/week/1/literature/writing/page.tsx">
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { ArrowLeft, ArrowRight, CheckCircle, RotateCcw, PenTool, Lightbulb } from "lucide-react";
+import { WRITING_QUESTIONS } from "@/data/literature";
+
+export default function WritingResponsePage() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [draft, setDraft] = useState("");
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [showResults, setShowResults] = useState(false);
+
+  useEffect(() => {
+    const fetchResponses = async () => {
+      try {
+        const res = await fetch('/api/writing?studentName=Jane&weekId=Week 1&assignmentId=literature-ch1-writing');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setAnswers(json.data.answers);
+            setShowResults(true);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch past responses", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchResponses();
+  }, []);
+
+  const currentQuestion = WRITING_QUESTIONS[currentIndex];
+
+  const handleSubmitDraft = () => {
+    if (!draft.trim()) return;
+    setAnswers(prev => ({ ...prev, [currentQuestion.id]: draft }));
+    setIsAnswered(true);
+  };
+
+  const handleNext = async () => {
+    if (currentIndex < WRITING_QUESTIONS.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setDraft("");
+      setIsAnswered(false);
+    } else {
+      try {
+        await fetch('/api/writing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: 'Jane',
+            weekId: 'Week 1',
+            assignmentId: 'literature-ch1-writing',
+            answers: answers
+          })
+        });
+      } catch (e) {
+        console.error("Failed to save to cloud", e);
+      }
+      setShowResults(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setDraft("");
+    setIsAnswered(false);
+    setAnswers({});
+    setShowResults(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // --- RESULTS SCREEN ---
+  if (showResults) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="p-12 rounded-3xl text-center shadow-lg border-2 bg-emerald-50 border-emerald-200 mb-12">
+          <h2 className="text-4xl font-black mb-4 text-slate-900">Assignment Completed!</h2>
+          <p className="text-xl font-medium text-slate-700 mb-8 max-w-2xl mx-auto">
+            Great job! You've analyzed all the questions. Review your final thoughts and the model answers below.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={handleRestart} className="flex items-center gap-2 px-6 py-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-sm">
+              <RotateCcw size={20} /> Start Over
+            </button>
+            <Link href="/week/1/literature" className="flex items-center gap-2 px-8 py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 transition-all shadow-xl hover:-translate-y-1">
+              Back to Hub <ArrowRight size={20} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {WRITING_QUESTIONS.map((q) => (
+            <div key={q.id} className="p-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
+              <p className="font-bold text-xl text-slate-800 mb-6">{q.id}. {q.text}</p>
+              
+              <div className="space-y-4">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-2">
+                    <PenTool size={16} /> Your Answer
+                  </h4>
+                  <p className="text-lg text-slate-800 whitespace-pre-wrap italic">{answers[q.id]}</p>
+                </div>
+                
+                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-600 mb-2 flex items-center gap-2">
+                    <Lightbulb size={16} /> Model Answer
+                  </h4>
+                  <p className="text-lg text-emerald-900 whitespace-pre-wrap">{q.modelAnswer}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // --- WRITING SCREEN ---
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/week/1/literature" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold">
+          <ArrowLeft size={20} /> Back to Hub
+        </Link>
+        <div className="flex items-center gap-4">
+          <span className="text-slate-400 font-bold text-sm tracking-widest uppercase">
+            Question {currentIndex + 1} of {WRITING_QUESTIONS.length}
+          </span>
+          <div className="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-emerald-500 transition-all duration-500 ease-out" 
+              style={{ width: `${((currentIndex) / WRITING_QUESTIONS.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-8 md:p-12 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-right-8 duration-300">
+        <h2 className="text-2xl md:text-3xl font-black text-slate-800 leading-tight mb-8">
+          {currentQuestion.text}
+        </h2>
+
+        <div className="relative mb-6">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            disabled={isAnswered}
+            placeholder="Type your response here..."
+            className="w-full min-h-[200px] p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl text-lg text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all resize-y disabled:opacity-70 disabled:bg-slate-100"
+          />
+        </div>
+
+        {!isAnswered ? (
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleSubmitDraft}
+              disabled={!draft.trim()}
+              className="px-8 py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl hover:-translate-y-1"
+            >
+              Submit Answer
+            </button>
+          </div>
+        ) : (
+          <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="p-6 rounded-2xl bg-blue-50 border border-blue-200">
+              <h4 className="font-black mb-3 flex items-center gap-2 text-blue-800 uppercase tracking-wider text-sm">
+                <CheckCircle size={18} /> Review Model Answer
+              </h4>
+              <p className="leading-relaxed text-lg text-blue-900">
+                {currentQuestion.modelAnswer}
+              </p>
+            </div>
+            
+            <div className="mt-8 flex flex-wrap justify-end gap-4">
+              <button
+                onClick={() => setIsAnswered(false)}
+                className="flex items-center gap-2 px-8 py-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-sm hover:-translate-y-1"
+              >
+                <PenTool size={20} /> Edit Answer
+              </button>
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-xl hover:-translate-y-1"
+              >
+                {currentIndex === WRITING_QUESTIONS.length - 1 ? 'Finish & Save' : 'Next Question'} 
+                <ArrowRight size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -486,156 +988,6 @@ export default function ArticlePage() {
             </section>
           </aside>
         )}
-      </div>
-    </div>
-  );
-}
-</file>
-
-<file path="src/app/week/1/monday/presentation/final/page.tsx">
-"use client";
-
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Printer, Home, ArrowLeft, Mic2, Sparkles } from "lucide-react";
-
-interface FinalSpeech {
-  intro: string;
-  body: string;
-  conclusion: string;
-}
-
-export default function FinalPresentationPage() {
-  const [speech, setSpeech] = useState<FinalSpeech | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('jane_final_speech');
-    if (saved) {
-      try {
-        setSpeech(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse speech");
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-600 font-bold animate-pulse">Preparing your speech...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!speech) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
-        <h1 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">No speech draft found!</h1>
-        <p className="text-slate-600 mb-8 max-w-md">It looks like you haven't completed your presentation draft yet.</p>
-        <Link
-          href="/"
-          className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg"
-        >
-          <Home size={20} />
-          <span>Return Home</span>
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto print:max-w-none">
-        {/* Header - Hidden in Print */}
-        <div className="mb-12 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
-              <Mic2 size={28} />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Your Final Presentation 🎤</h1>
-              <p className="text-slate-500 font-medium">Ready for the spotlight! Good luck!</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Link
-              href="/week/1/monday/presentation/structure"
-              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              <ArrowLeft size={18} />
-              <span>Edit Draft</span>
-            </Link>
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-100"
-            >
-              <Printer size={18} />
-              <span>Print / Save as PDF</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Main Cue Card */}
-        <div className="max-w-3xl mx-auto bg-white p-10 md:p-14 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] print:border-0 print:shadow-none print:p-0">
-          <div className="flex items-center gap-2 mb-12 text-indigo-600 font-black uppercase tracking-widest text-sm print:hidden">
-            <Sparkles size={16} />
-            <span>Digital Cue Card</span>
-          </div>
-
-          <div className="space-y-12">
-            {/* Introduction Section */}
-            <div className="mb-10 pl-6 border-l-4 border-blue-400">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="bg-blue-100 text-blue-700 text-xs font-black px-2 py-1 rounded uppercase tracking-widest">Part 1</span>
-                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">Introduction</h3>
-              </div>
-              <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-serif">
-                {speech.intro || "No introduction drafted."}
-              </div>
-            </div>
-
-            {/* Main Body Section */}
-            <div className="mb-10 pl-6 border-l-4 border-amber-400">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="bg-amber-100 text-amber-700 text-xs font-black px-2 py-1 rounded uppercase tracking-widest">Part 2</span>
-                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">Main Body</h3>
-              </div>
-              <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-serif">
-                {speech.body ? speech.body.replace(/------------------------/g, '') : "No body drafted."}
-              </div>
-            </div>
-
-            {/* Conclusion Section */}
-            <div className="mb-10 pl-6 border-l-4 border-emerald-400">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="bg-emerald-100 text-emerald-700 text-xs font-black px-2 py-1 rounded uppercase tracking-widest">Part 3</span>
-                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">Conclusion</h3>
-              </div>
-              <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-serif">
-                {speech.conclusion || "No conclusion drafted."}
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-20 pt-12 border-t border-slate-100 text-center print:hidden">
-            <p className="text-slate-400 font-medium italic mb-8">
-              "Every great presentation starts with a single step. You've got this!"
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-10 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl"
-            >
-              <Home size={20} />
-              <span>Back to Dashboard</span>
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -898,206 +1250,290 @@ export default function PresentationWizard() {
 }
 </file>
 
-<file path="src/app/week/1/monday/presentation/structure/page.tsx">
+<file path="src/app/week/1/reading-comprehension/page.tsx">
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Play, List, Flag, ArrowLeft, Send } from "lucide-react";
-import { QUESTIONS } from "@/data/agentic-ai";
+import { ArrowLeft, CheckCircle, XCircle, ArrowRight, RotateCcw } from "lucide-react";
+import { READING_ARTICLE, READING_QUESTIONS } from "@/data/reading-comprehension";
 
-export default function PresentationStructure() {
-  const router = useRouter();
-  const [introText, setIntroText] = useState("");
-  const [bodyText, setBodyText] = useState("");
-  const [conclusionText, setConclusionText] = useState("");
+export default function ReadingComprehensionPage() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    // First, check if a full draft already exists (for users returning to edit)
-    const savedDraft = localStorage.getItem('jane_final_speech');
-    if (savedDraft) {
+    const fetchQuiz = async () => {
       try {
-        const parsedDraft = JSON.parse(savedDraft);
-        setIntroText(parsedDraft.intro || "");
-        setBodyText(parsedDraft.body || "");
-        setConclusionText(parsedDraft.conclusion || "");
-        return; // Exit early so we don't overwrite the body with raw Q&A
+        const res = await fetch('/api/quiz?studentName=Jane&weekId=Week 1&quizId=reading-comp-ai');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setAnswers(json.data.answers);
+            setScore(json.data.score);
+            setShowResults(true);
+          }
+        }
       } catch (e) {
-        console.error("Failed to parse saved draft");
+        console.error("Failed to fetch past quiz", e);
+      } finally {
+        setIsLoading(false);
       }
-    }
-
-    // Fallback: If no draft exists, generate the body from raw Q&A answers
-    const savedAnswers = localStorage.getItem('jane_qa_answers');
-    if (savedAnswers) {
-      try {
-        const parsed = JSON.parse(savedAnswers);
-        const formattedBody = parsed.map((answer: string, index: number) => {
-          const questionText = QUESTIONS[index]?.text || `Question ${index + 1}`;
-          return `Q: ${questionText}\n${answer}`;
-        }).join('\n\n------------------------\n\n');
-        
-        setBodyText(formattedBody);
-      } catch (e) {
-        console.error("Failed to parse answers");
-      }
-    }
+    };
+    fetchQuiz();
   }, []);
 
-  const [isSaving, setIsSaving] = useState(false);
+  const currentQuestion = READING_QUESTIONS[currentIndex];
 
-  const handleFinish = async (e?: React.MouseEvent | React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSelect = (optionId: string) => {
+    if (isAnswered) return;
+    
+    setSelectedOption(optionId);
+    setIsAnswered(true);
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionId }));
 
-    // 0. Frontend Validation Guard
-    if (!introText.trim() || !bodyText.trim() || !conclusionText.trim()) {
-      alert("Please draft all three sections (Introduction, Body, and Conclusion) before saving!");
-      return;
-    }
-
-    setIsSaving(true);
-    const finalSpeech = {
-      studentName: 'Jane',
-      weekId: 'Week 1',
-      topic: 'Agentic AI',
-      intro: introText,
-      body: bodyText,
-      conclusion: conclusionText
-    };
-
-    // 1. Keep saving to local storage for immediate UI hydration
-    localStorage.setItem('jane_final_speech', JSON.stringify(finalSpeech));
-
-    // 2. Send the data to MongoDB
-    try {
-      const response = await fetch('/api/presentations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalSpeech),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save to database');
-      }
-
-      // 3. Navigate to the final view
-      router.push('/week/1/monday/presentation/final');
-    } catch (error) {
-      console.error(error);
-      // Use setTimeout to push the alert to the end of the execution queue
-      setTimeout(() => alert("There was an issue saving to the cloud, but your local draft is safe!"), 100);
-      router.push('/week/1/monday/presentation/final');
-    } finally {
-      setIsSaving(false);
+    if (optionId === currentQuestion.correctAnswer) {
+      setScore((prev) => prev + 1);
     }
   };
 
+  const handleNext = async () => {
+    if (currentIndex < READING_QUESTIONS.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setSelectedOption(null);
+      setIsAnswered(false);
+    } else {
+      try {
+        await fetch('/api/quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: 'Jane',
+            weekId: 'Week 1',
+            quizId: 'reading-comp-ai',
+            answers: answers,
+            score: score,
+            totalQuestions: READING_QUESTIONS.length
+          })
+        });
+      } catch (e) {
+        console.error("Failed to save to cloud", e);
+      }
+      setShowResults(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setScore(0);
+    setAnswers({});
+    setShowResults(false);
+  };
+
+  const getOptionStyles = (optionId: string) => {
+    if (!isAnswered) return "border-slate-200 hover:border-sky-300 hover:bg-slate-50 cursor-pointer";
+    if (optionId === currentQuestion.correctAnswer) return "border-emerald-500 bg-emerald-50 text-emerald-800 font-bold ring-2 ring-emerald-500/20";
+    if (selectedOption === optionId && optionId !== currentQuestion.correctAnswer) return "border-red-400 bg-red-50 text-red-700 line-through";
+    return "border-slate-200 opacity-50 cursor-default";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-sky-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-12">
-        <Link
-          href="/week/1/monday/presentation"
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold"
-        >
-          <ArrowLeft size={20} />
-          <span>Back to Outline</span>
+    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
+      {/* Top Navbar Area */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0 z-10">
+        <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold">
+          <ArrowLeft size={20} /> Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Draft Your Presentation</h1>
+        <div className="bg-sky-100 text-sky-700 text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest">
+          Reading Comprehension Check
+        </div>
       </div>
 
-      <div className="space-y-12">
-        {/* Introduction */}
-        <section className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center">
-              <Play size={20} fill="currentColor" />
+      {/* Split Screen Container */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        {/* Left Side: Article */}
+        <div className="lg:w-1/2 h-1/2 lg:h-full border-b lg:border-b-0 lg:border-r border-slate-200 bg-white overflow-y-auto p-8 md:p-12 scroll-smooth">
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-8 leading-tight">
+            {READING_ARTICLE.title}
+          </h1>
+          <div className="space-y-6">
+            {READING_ARTICLE.content.map((paragraph, idx) => (
+              <p key={idx} className="text-lg text-slate-700 leading-relaxed font-serif">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side: Quiz */}
+        <div className="lg:w-1/2 h-1/2 lg:h-full bg-slate-50 overflow-y-auto p-8 md:p-12">
+          {showResults ? (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className={`p-10 rounded-3xl text-center shadow-sm border-2 mb-8 ${score === READING_QUESTIONS.length ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'}`}>
+                <h2 className="text-3xl font-black mb-4 text-slate-900">Test Completed!</h2>
+                <p className="text-xl font-medium text-slate-700 mb-8">
+                  You scored <span className="font-bold text-3xl mx-1">{score}</span> out of {READING_QUESTIONS.length}
+                </p>
+                <div className="flex justify-center gap-4">
+                  <button onClick={handleRestart} className="flex items-center gap-2 px-6 py-3 bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all">
+                    <RotateCcw size={18} /> Try Again
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                  <CheckCircle className="text-sky-600" /> Answer Review
+                </h3>
+                {READING_QUESTIONS.map((q) => {
+                  const isCorrect = answers[q.id] === q.correctAnswer;
+                  const chosenOptionText = q.options.find(o => o.id === answers[q.id])?.text || "Did not answer";
+                  return (
+                    <div key={q.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="font-bold text-slate-800 mb-3">{q.id}. {q.text}</p>
+                      <div className={`p-3 rounded-lg border ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                        <span className="font-semibold">Your Answer:</span> {chosenOptionText}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <h2 className="text-2xl font-black text-blue-900">1. Introduction (The Hook)</h2>
-          </div>
+          ) : (
+            <div className="max-w-xl mx-auto animate-in fade-in slide-in-from-right-8 duration-300">
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-slate-400 font-bold text-sm tracking-widest uppercase">
+                  Question {currentIndex + 1} of {READING_QUESTIONS.length}
+                </span>
+                <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-sky-600 transition-all duration-500" style={{ width: `${((currentIndex) / READING_QUESTIONS.length) * 100}%` }} />
+                </div>
+              </div>
 
-          <div className="bg-white/60 rounded-2xl p-6 mb-6 border border-blue-100">
-            <h3 className="text-blue-700 font-bold text-sm uppercase tracking-wider mb-4">Recommended Phrases:</h3>
-            <ul className="space-y-3">
-              <li className="text-slate-700 italic font-medium">"Today, I'd like to explore a fascinating shift in technology..."</li>
-              <li className="text-slate-700 italic font-medium">"Have you ever wondered what happens when computers stop waiting for our commands?"</li>
-              <li className="text-slate-700 italic font-medium">"The purpose of my presentation is to compare..."</li>
-            </ul>
-          </div>
+              <h2 className="text-2xl font-black text-slate-800 leading-tight mb-8">
+                {currentQuestion.text}
+              </h2>
 
-          <textarea
-            value={introText}
-            onChange={(e) => setIntroText(e.target.value)}
-            className="w-full min-h-[150px] p-6 bg-white border-2 border-blue-100 rounded-2xl text-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-300"
-            placeholder="Draft your introduction here..."
-          />
-        </section>
+              <div className="space-y-4">
+                {currentQuestion.options.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => handleSelect(opt.id)}
+                    disabled={isAnswered}
+                    className={`w-full text-left p-5 rounded-2xl border-2 transition-all flex items-start gap-4 ${getOptionStyles(opt.id)}`}
+                  >
+                    <span className="font-black text-lg uppercase flex-shrink-0">{opt.id}.</span>
+                    <span className="leading-relaxed text-[1.05rem] pt-0.5">{opt.text}</span>
+                  </button>
+                ))}
+              </div>
 
-        {/* Body */}
-        <section className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-amber-600 text-white rounded-xl flex items-center justify-center">
-              <List size={20} />
+              {isAnswered && (
+                <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className={`p-6 rounded-2xl border ${selectedOption === currentQuestion.correctAnswer ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                    <h4 className={`font-black mb-2 flex items-center gap-2 ${selectedOption === currentQuestion.correctAnswer ? 'text-emerald-800' : 'text-red-800'}`}>
+                      {selectedOption === currentQuestion.correctAnswer ? '🎉 Correct!' : '❌ Incorrect'}
+                    </h4>
+                    <p className={`leading-relaxed ${selectedOption === currentQuestion.correctAnswer ? 'text-emerald-700' : 'text-red-700'}`}>
+                      <span className="font-bold mr-2">Explanation:</span> 
+                      {currentQuestion.explanation}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={handleNext}
+                      className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:-translate-y-1"
+                    >
+                      {currentIndex === READING_QUESTIONS.length - 1 ? 'Finish & Save' : 'Next Question'} 
+                      <ArrowRight size={20} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            <h2 className="text-2xl font-black text-amber-900">2. Body (The Evidence)</h2>
-          </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
 
-          <div className="bg-white/60 rounded-2xl p-6 mb-6 border border-amber-100">
-            <h3 className="text-amber-700 font-bold text-sm uppercase tracking-wider mb-4">Transition & Evidence:</h3>
-            <ul className="space-y-3">
-              <li className="text-slate-700 italic font-medium">"To illustrate this point, consider..."</li>
-              <li className="text-slate-700 italic font-medium">"Furthermore, it is crucial to understand that..."</li>
-              <li className="text-slate-700 italic font-medium">"On the other hand, a major challenge is..."</li>
-            </ul>
-          </div>
+<file path="src/app/week/1/vocabmon/page.tsx">
+"use client";
 
-          <textarea
-            value={bodyText}
-            onChange={(e) => setBodyText(e.target.value)}
-            className="w-full min-h-[250px] p-6 bg-white border-2 border-amber-100 rounded-2xl text-lg focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all placeholder:text-slate-300"
-            placeholder="Draft the main body of your speech..."
-          />
-        </section>
+import Link from "next/link";
+import { ArrowLeft, Gamepad2, ExternalLink, User, Key } from "lucide-react";
 
-        {/* Conclusion */}
-        <section className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center">
-              <Flag size={20} fill="currentColor" />
-            </div>
-            <h2 className="text-2xl font-black text-emerald-900">3. Conclusion (The Takeaway)</h2>
-          </div>
-
-          <div className="bg-white/60 rounded-2xl p-6 mb-6 border border-emerald-100">
-            <h3 className="text-emerald-700 font-bold text-sm uppercase tracking-wider mb-4">Wrapping Up:</h3>
-            <ul className="space-y-3">
-              <li className="text-slate-700 italic font-medium">"Ultimately, the key takeaway is..."</li>
-              <li className="text-slate-700 italic font-medium">"To summarize, Agentic AI represents..."</li>
-              <li className="text-slate-700 italic font-medium">"Thank you for your time. I'd be happy to answer any questions."</li>
-            </ul>
-          </div>
-
-          <textarea
-            value={conclusionText}
-            onChange={(e) => setConclusionText(e.target.value)}
-            className="w-full min-h-[150px] p-6 bg-white border-2 border-emerald-100 rounded-2xl text-lg focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all placeholder:text-slate-300"
-            placeholder="Draft your concluding remarks..."
-          />
-        </section>
+export default function VocabmonPage() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="mb-8">
+        <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold w-fit">
+          <ArrowLeft size={20} /> Back to Dashboard
+        </Link>
       </div>
 
-      <div className="mt-12 flex flex-col items-center gap-6">
-        <button
-          onClick={handleFinish}
-          disabled={isSaving}
-          className="group flex items-center gap-3 px-12 py-6 bg-slate-900 text-white font-black rounded-3xl hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-2xl hover:shadow-slate-200 hover:-translate-y-1 text-xl"
-        >
-          <span>{isSaving ? 'Saving...' : 'Finish & Save'}</span>
-          <Send size={24} className={`group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform ${isSaving ? 'animate-pulse' : ''}`} />
-        </button>
-        <p className="text-slate-400 font-medium text-center">
-          Great job! Clicking above will save your draft and return you to the home dashboard.
-        </p>
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white border-2 border-slate-200 rounded-3xl p-8 md:p-12 shadow-xl text-center">
+          <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+            <Gamepad2 size={40} />
+          </div>
+          
+          <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Time for Vocabmon!</h1>
+          <p className="text-xl text-slate-600 mb-10 leading-relaxed">
+            Level up your vocabulary! Use your personal credentials below to log in and evolve your words.
+          </p>
+
+          <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 mb-10 max-w-md mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-slate-500 font-bold uppercase tracking-wider text-sm">
+                <User size={18} /> Login ID
+              </div>
+              <div className="text-2xl font-black text-slate-900 bg-white px-6 py-2 rounded-xl border border-slate-200 shadow-sm">
+                jane
+              </div>
+            </div>
+            
+            <div className="h-px bg-slate-200 w-full" />
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-slate-500 font-bold uppercase tracking-wider text-sm">
+                <Key size={18} /> Password
+              </div>
+              <div className="text-2xl font-black text-slate-900 bg-white px-6 py-2 rounded-xl border border-slate-200 shadow-sm">
+                1234
+              </div>
+            </div>
+          </div>
+
+          <a 
+            href="https://vocabmon-app-beryl.vercel.app/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 px-10 py-5 bg-rose-600 text-white text-lg font-black rounded-2xl hover:bg-rose-700 transition-all shadow-xl hover:shadow-rose-200 hover:-translate-y-1"
+          >
+            <span>Launch Vocabmon</span>
+            <ExternalLink size={24} />
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -1335,6 +1771,357 @@ export const QUESTIONS: Question[] = [
 ];
 </file>
 
+<file path="src/data/literature.ts">
+export const MULTIPLE_CHOICE_QUESTIONS = [
+  {
+    id: 1,
+    text: "What event happened a year ago that truly made Jonas feel \"frightened\"?",
+    options: [
+      { id: "A", text: "The community's food supply was suddenly cut off." },
+      { id: "B", text: "A needle-nosed, single-pilot jet flew over the community twice." },
+      { id: "C", text: "He witnessed a citizen being publicly released for the first time." },
+      { id: "D", text: "He was scolded by the Speaker for riding his bicycle too fast." }
+    ],
+    correctAnswer: "B",
+    explanation: "On the very first page of the chapter, Jonas recalls a time he was genuinely terrified. The text describes a \"needle-nosed single-pilot jet\" flying over the community, which panicked everyone because aircraft were strictly forbidden from flying over their living area."
+  },
+  {
+    id: 2,
+    text: "Why does Jonas decide that \"frightened\" is the wrong word to describe his feelings about the upcoming month of December?",
+    options: [
+      { id: "A", text: "Because he is actually completely terrified and \"frightened\" isn't strong enough." },
+      { id: "B", text: "Because \"frightened\" implies a deep, sickening feeling of terrible danger, and he doesn't feel in danger." },
+      { id: "C", text: "Because the rules state that Elevens are not allowed to use the word \"frightened.\"" },
+      { id: "D", text: "Because his friend Asher told him it was a silly word to use." }
+    ],
+    correctAnswer: "B",
+    explanation: "Jonas is very precise about language. He thinks to himself that \"frightened\" means a \"deep, sickening feeling of something terrible about to happen\" (like when the jet flew over). Since he doesn't feel like he is in physical danger regarding December, he realizes \"frightened\" is the wrong adjective."
+  },
+  {
+    id: 3,
+    text: "During his public apology for being late to class, Asher is corrected by the instructor for his word choice. What mistake did he make?",
+    options: [
+      { id: "A", text: "He used the word \"distraught\" instead of \"distracted.\"" },
+      { id: "B", text: "He used the word \"angry\" instead of \"frustrated.\"" },
+      { id: "C", text: "He used the word \"frightened\" instead of \"apprehensive.\"" },
+      { id: "D", text: "He used the word \"starving\" instead of \"hungry.\"" }
+    ],
+    correctAnswer: "A",
+    explanation: "Asher apologizes for being late by saying he was \"distraught\" watching the salmon hatchery. The instructor uses this as a teaching moment, explaining that \"distraught\" is too strong of a word for just watching fish, and writes \"distracted\" on the board instead."
+  },
+  {
+    id: 4,
+    text: "According to the text, \"release\" from the community is generally a terrible punishment and a statement of failure. However, there are two occasions where release is NOT a punishment. What are they?",
+    options: [
+      { id: "A", text: "Release of a teacher and release of a Pilot-in-Training." },
+      { id: "B", text: "Release of a Nurturer and release of a pregnant mother." },
+      { id: "C", text: "Release of the elderly and release of a newchild." },
+      { id: "D", text: "Release of a sick person and release of a lawbreaker." }
+    ],
+    correctAnswer: "C",
+    explanation: "The text explicitly states that there are only two times release is not a punishment: the release of the elderly, which is viewed as a celebration of a life well-lived, and the release of a newchild (an infant), which brings a sense of sadness or \"what-could-we-have-done.\""
+  },
+  {
+    id: 5,
+    text: "What is the strict rule regarding the size of a family unit in Jonas's community?",
+    options: [
+      { id: "A", text: "Families can have as many children as they want if they have a large enough dwelling." },
+      { id: "B", text: "Each family unit is allowed a maximum of three children." },
+      { id: "C", text: "Each family unit is allowed exactly two children: one male and one female." },
+      { id: "D", text: "Families are only allowed to have one child to control the population." }
+    ],
+    correctAnswer: "C",
+    explanation: "When Lily suggests keeping the newchild that their father brings home, her mother quickly shuts it down by reminding her of the rules. The text notes: \"Two children — one male, one female — to each family unit. It was written very clearly in the rules.\""
+  },
+  {
+    id: 6,
+    text: "Why is Jonas's father (a Nurturer) concerned about the male newchild at his work?",
+    options: [
+      { id: "A", text: "The newchild is growing too quickly and might hurt the other babies." },
+      { id: "B", text: "The newchild cries so loudly that it disrupts the entire Childcare Center." },
+      { id: "C", text: "The newchild is not growing as fast as he should and doesn't sleep soundly." },
+      { id: "D", text: "The newchild has an unusual eye color that is against the rules." }
+    ],
+    correctAnswer: "C",
+    explanation: "During the evening telling of feelings, Jonas's father shares his worry about a baby at the Nurturing Center. He explains that the baby has a sweet disposition but isn't sleeping well and isn't hitting his growth milestones, which means the committee is considering \"releasing\" him."
+  },
+  {
+    id: 7,
+    text: "How does the community's evening ritual of \"telling of feelings\" help enforce social control?",
+    options: [
+      { id: "A", text: "It allows parents to monitor their children's emotions and correct any thoughts that don't align with the community's rules." },
+      { id: "B", text: "It gives children a chance to plan a rebellion against the community leaders." },
+      { id: "C", text: "It allows families to vote on which rules they want to change the next day." },
+      { id: "D", text: "It helps citizens practice their acting skills for the annual December ceremonies." }
+    ],
+    correctAnswer: "A",
+    explanation: "By forcing everyone to share their private emotions every single night, the family (acting on behalf of the community) can immediately address them. For example, when Lily expresses anger, her parents talk her down and make her see things the community's way. It ensures no one is hiding rebellious or complicated feelings."
+  },
+  {
+    id: 8,
+    text: "Which word does Jonas finally choose as the most accurate description for how he feels about the upcoming Ceremony of Twelve?",
+    options: [
+      { id: "A", text: "Distraught" },
+      { id: "B", text: "Excited" },
+      { id: "C", text: "Eager" },
+      { id: "D", text: "Apprehensive" }
+    ],
+    correctAnswer: "D",
+    explanation: "After turning away from words like \"frightened\" and deciding he isn't quite \"eager,\" Jonas finally lands on the exact right word during his private talk with his parents. He states, \"I'm feeling apprehensive,\" and is relieved to have found the correct descriptive word."
+  }
+];
+
+export const WRITING_QUESTIONS = [
+  { 
+    id: 1, 
+    text: "What happened a year prior that caused Jonas to feel truly \"frightened,\" and how did the community's loudspeakers react to the event?", 
+    modelAnswer: "A year ago, an unauthorized, needle-nosed jet flew over the community twice. This was a terrifying anomaly. In response, the community's loudspeakers immediately ordered all citizens to drop their bicycles exactly where they were and seek shelter indoors, creating an instant, eerie silence across the town." 
+  },
+  { 
+    id: 2, 
+    text: "Why was Jonas's friend, Asher, forced to make a public apology to his class, and what specific word choice did the instructor message him on?", 
+    modelAnswer: "Asher was forced to make a standard public apology because he arrived late to class. During his apology, he said he was \"distraught\" from watching the salmon hatchery. The instructor corrected him, noting that \"distraught\" was far too strong an adjective for the situation, and told him the precise word was \"distracted.\"" 
+  },
+  { 
+    id: 3, 
+    text: "Based on Jonas's father's discussion about the struggling \"newchild,\" what is the strict rule regarding the number of children allowed in each family unit?", 
+    modelAnswer: "The rules dictate that each family unit is strictly limited to exactly two children: one male and one female." 
+  },
+  { 
+    id: 4, 
+    text: "When the unidentified jet flies over the community, all the citizens drop their bikes and go indoors, leaving the streets completely silent. How does the author use this silent, waiting reaction to create a suspenseful mood and show the power of the community's rules?", 
+    modelAnswer: "The author creates suspense by focusing on the abandoned bikes with their wheels still spinning and the sudden, unnatural emptiness of the normally busy streets. This instant, unquestioning obedience to the loudspeakers shows that the community’s rules hold absolute power over the citizens; they are conditioned to comply immediately without panicking or asking questions." 
+  },
+  { 
+    id: 5, 
+    text: "Jonas spends a lot of time at the beginning of the chapter trying to find the exact word for his feelings, eventually settling on \"apprehensive\" rather than \"frightened.\" Why is this specific word choice so important to him, and what event is he apprehensive about?", 
+    modelAnswer: "Finding the exact word is important to Jonas because his society heavily enforces the \"precision of language,\" and citizens are trained from a young age to express themselves perfectly to avoid confusion or strong, unregulated emotions. He finally decides he is \"apprehensive\" (nervous but anticipating) about the upcoming December \"Ceremony of Twelve,\" a major life milestone." 
+  },
+  { 
+    id: 6, 
+    text: "The text mentions that a Pilot-in-Training is going to be \"released,\" which Jonas notes is a \"terrible punishment.\" However, the text later mentions two occasions where release is not a punishment. What are those two occasions, and what does this concept of \"release\" suggest about the society they live in?", 
+    modelAnswer: "The two occasions where release is not a punishment are the release of the elderly (viewed as a celebration of a full life) and the release of a newchild (viewed as a sad failure to thrive). The concept of \"release\" suggests that this society cannot tolerate anything that doesn't fit its perfect mold. Whether someone makes a mistake, gets too old, or doesn't develop correctly as a baby, the society simply removes them to maintain order." 
+  },
+  { 
+    id: 7, 
+    text: "Every evening, Jonas's family must participate in the \"telling of feelings\" ritual where they share their emotions and have them analyzed by their parents. In your opinion, is this forced sharing a healthy way to manage emotions, or is it an unfair invasion of privacy? Explain your reasoning.", 
+    modelAnswer: "While it might initially seem like a healthy way to process emotions, forcing everyone to share every single feeling is an unfair invasion of privacy. For example, when Lily expresses her anger, her parents immediately guide her to analyze it until she admits she isn't angry anymore. It feels less like emotional support and more like a tool for the community to \"correct\" messy emotions and ensure everyone continues to conform to the rules. People need the space to have private thoughts." 
+  },
+  { 
+    id: 8, 
+    text: "Lily gets very angry at a visiting child from another community because he didn't follow the play area rules. Her parents guide her to realize he simply didn't know their ways. Have you ever been in a situation where you felt out of place because you didn't know the \"rules\" of a new group or place? How does Lily's reaction highlight the community's obsession with conformity?", 
+    modelAnswer: "(Student personal connection goes here.) Lily’s reaction highlights her community’s obsession with conformity because instead of showing understanding to a newcomer, she instantly got angry and compared him to an \"animal.\" In her society, everyone is trained to act exactly the same way all the time, showing that they have zero tolerance for differences or harmless mistakes." 
+  }
+];
+</file>
+
+<file path="src/data/reading-comprehension.ts">
+export const READING_ARTICLE = {
+  title: "Beyond the Robots: Understanding Artificial Intelligence",
+  content: [
+    "When you hear the term \"Artificial Intelligence\" (AI), your mind might immediately jump to science fiction movies featuring glowing red eyes, humanoid robots, or computers taking over the world. However, the reality of AI is much less cinematic and much more common. You probably interact with AI several times a day without even realizing it.",
+    "At its core, Artificial Intelligence is a branch of computer science dedicated to creating systems capable of performing tasks that typically require human intelligence. These tasks include recognizing speech, making decisions, translating languages, and identifying patterns. Unlike a traditional computer program, which only does exactly what a human programmer tells it to do step-by-step, an AI system uses algorithms—sets of rules and calculations—to process information and figure things out on its own.",
+    "The most powerful type of AI today is called \"machine learning.\" Instead of being programmed with strict rules, a machine learning system is fed enormous amounts of data. For example, if you want an AI to recognize cats, you don't write a code describing a cat’s pointy ears and whiskers. Instead, you show the AI millions of photos of cats and millions of photos of things that are not cats. Over time, the system recognizes the visual patterns that make a cat a cat. It learns from experience, much like a human brain does.",
+    "Because of this learning process, AI is incredibly useful for everyday tasks. When a streaming service recommends a movie you might like, that is an AI analyzing your past viewing habits and comparing them to millions of other users. When you use a smartphone map to find the fastest route home, an AI is analyzing real-time traffic data, road closures, and speed limits to predict your arrival time.",
+    "Experts often describe modern AI not as a replacement for humans, but as a \"co-pilot.\" Just as a co-pilot helps a pilot fly an airplane safely, AI tools help humans work faster and smarter. Doctors use AI to help scan medical X-rays and spot early signs of disease that a human eye might miss. Programmers use AI to help them write computer code more efficiently. In these scenarios, the AI does the heavy lifting of sorting through data, but the human makes the final decision.",
+    "However, this rapidly advancing technology comes with significant challenges. One major issue is the \"black box\" problem. As machine learning systems become more complex, they essentially build their own pathways to solve problems. Sometimes, even the engineers who created the AI cannot fully explain how the computer arrived at a specific answer. It is like a black box where data goes in and answers come out, but the process inside is a mystery.",
+    "Another serious concern is bias. Because AI learns from data created by humans, it can inherit human flaws. If the data used to train an AI is unfair or leaves out certain groups of people, the AI's decisions will also be unfair. For example, if an AI is used to sort through job applications, but it was trained mostly on resumes from men, it might unfairly reject applications from women.",
+    "Artificial Intelligence is no longer just a futuristic concept; it is the reality of the modern world. As AI continues to evolve, society must figure out how to use this powerful \"co-pilot\" responsibly, ensuring that the technology is safe, fair, and beneficial for everyone."
+  ]
+};
+
+export const READING_QUESTIONS = [
+  {
+    id: 1,
+    text: "What is the main idea of the passage?",
+    options: [
+      { id: "A", text: "AI is dangerous and will eventually replace human workers in the medical and programming fields." },
+      { id: "B", text: "AI is a common technology that learns from data to help humans, though it comes with challenges like bias and the \"black box\" problem." },
+      { id: "C", text: "AI is exactly like the robots seen in science fiction movies, but it is currently too expensive for everyday use." },
+      { id: "D", text: "Machine learning is a type of AI that only focuses on analyzing photographs of animals." }
+    ],
+    correctAnswer: "B",
+    explanation: "The passage explains what AI is, how it is used as a tool, and outlines its main challenges."
+  },
+  {
+    id: 2,
+    text: "Based on how it is used in the second paragraph, what is the best definition for the word \"algorithms\"?",
+    options: [
+      { id: "A", text: "Traditional computer hardware" },
+      { id: "B", text: "Human intelligence" },
+      { id: "C", text: "Sets of rules and calculations used to process information" },
+      { id: "D", text: "Errors in computer programming" }
+    ],
+    correctAnswer: "C",
+    explanation: "The text defines algorithms directly as \"sets of rules and calculations.\""
+  },
+  {
+    id: 3,
+    text: "According to the text, how does \"machine learning\" differ from traditional computer programming?",
+    options: [
+      { id: "A", text: "Machine learning requires a human to write step-by-step instructions for every single action." },
+      { id: "B", text: "Machine learning systems cannot process visual data like photos." },
+      { id: "C", text: "Machine learning systems are fed large amounts of data to recognize patterns on their own." },
+      { id: "D", text: "Machine learning is only used by streaming services to recommend movies." }
+    ],
+    correctAnswer: "C",
+    explanation: "Paragraph 3 explains that it is fed data to learn patterns, rather than relying on strict rules."
+  },
+  {
+    id: 4,
+    text: "Why does the author use the metaphor of a \"co-pilot\" to describe AI?",
+    options: [
+      { id: "A", text: "To show that AI is mostly used in the aviation industry to fly airplanes." },
+      { id: "B", text: "To explain that AI is meant to assist and work alongside humans, rather than completely replace them." },
+      { id: "C", text: "To argue that humans should let AI make all the final decisions in the workplace." },
+      { id: "D", text: "To demonstrate that AI is still too weak to do any heavy lifting." }
+    ],
+    correctAnswer: "B",
+    explanation: "Paragraph 5 notes that just like a co-pilot helps a pilot, AI helps humans work smarter while the human makes the final decision."
+  },
+  {
+    id: 5,
+    text: "What is the \"black box\" problem mentioned in the text?",
+    options: [
+      { id: "A", text: "The fact that AI computers are often built inside dark, square cases." },
+      { id: "B", text: "The issue where AI completely shuts down and deletes its own data." },
+      { id: "C", text: "The problem where AI refuses to answer questions from engineers." },
+      { id: "D", text: "The situation where even the creators of the AI cannot fully explain how the system arrived at its answer." }
+    ],
+    correctAnswer: "D",
+    explanation: "Paragraph 6 explains that the inner decision-making process of complex AI is a mystery, even to its creators."
+  },
+  {
+    id: 6,
+    text: "According to the passage, what causes an AI system to become biased?",
+    options: [
+      { id: "A", text: "The AI decides on its own to be unfair to certain groups." },
+      { id: "B", text: "The system learns from data created by humans, which may already contain flaws or exclusions." },
+      { id: "C", text: "The AI becomes infected with a computer virus." },
+      { id: "D", text: "The engineers intentionally program the AI to give incorrect answers." }
+    ],
+    correctAnswer: "B",
+    explanation: "Paragraph 7 states that AI inherits human flaws if the data used to train it is unfair."
+  },
+  {
+    id: 7,
+    text: "Which of the following is an example of an AI acting as a \"co-pilot,\" as described in the passage?",
+    options: [
+      { id: "A", text: "An AI that automatically hires job applicants without any human review." },
+      { id: "B", text: "A doctor using an AI program to help identify tiny abnormalities on a patient's X-ray before making a diagnosis." },
+      { id: "C", text: "An AI robot from a movie that tries to take over a city." },
+      { id: "D", text: "A traditional calculator solving a math equation based on buttons pushed by a student." }
+    ],
+    correctAnswer: "B",
+    explanation: "This perfectly matches the text's example of AI doing heavy data lifting while the human makes the final choice."
+  },
+  {
+    id: 8,
+    text: "Based on the conclusion of the passage, what is the author's tone regarding the future of Artificial Intelligence?",
+    options: [
+      { id: "A", text: "Panicked and fearful about the end of humanity." },
+      { id: "B", text: "Completely dismissive, believing AI is just a temporary fad." },
+      { id: "C", text: "Cautious but practical, emphasizing the need to use the technology responsibly and fairly." },
+      { id: "D", text: "Overly excited, believing AI will instantly solve all of the world's problems." }
+    ],
+    correctAnswer: "C",
+    explanation: "The author views AI as a powerful reality but stresses that \"society must figure out how to use this powerful 'co-pilot' responsibly.\""
+  }
+];
+</file>
+
+<file path="src/lib/mongodb.ts">
+import dns from 'node:dns/promises';
+import mongoose from 'mongoose';
+
+dns.setServers(['1.1.1.1', '8.8.8.8']);
+
+const MONGODB_URI = process.env.MONGODB_URI!;
+
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
+
+let cached = (global as any).mongoose;
+
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
+}
+
+async function connectToDatabase() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+  if (!cached.promise) {
+    const opts = { bufferCommands: false };
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
+  }
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+  return cached.conn;
+}
+
+export default connectToDatabase;
+</file>
+
+<file path="src/models/Presentation.ts">
+import mongoose, { Schema, models } from 'mongoose';
+
+const PresentationSchema = new Schema({
+  studentName: { type: String, required: true, default: 'Jane' },
+  weekId: { type: String, required: true },
+  topic: { type: String, required: true },
+  intro: { type: String, required: true },
+  body: { type: String, required: true },
+  conclusion: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Presentation = models.Presentation || mongoose.model('Presentation', PresentationSchema);
+
+export default Presentation;
+</file>
+
+<file path="src/models/Quiz.ts">
+import mongoose, { Schema, models } from 'mongoose';
+
+const QuizSchema = new Schema({
+  studentName: { type: String, required: true, default: 'Jane' },
+  weekId: { type: String, required: true },
+  quizId: { type: String, required: true },
+  answers: { type: Object, required: true }, // Stores questionId -> selectedOption mapping
+  score: { type: Number, required: true },
+  totalQuestions: { type: Number, required: true },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const Quiz = models.Quiz || mongoose.model('Quiz', QuizSchema);
+
+export default Quiz;
+</file>
+
+<file path="src/models/WritingResponse.ts">
+import mongoose, { Schema, models } from 'mongoose';
+
+const WritingResponseSchema = new Schema({
+  studentName: { type: String, required: true, default: 'Jane' },
+  weekId: { type: String, required: true },
+  assignmentId: { type: String, required: true },
+  answers: { type: Object, required: true }, // Stores questionId -> student's written text
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const WritingResponse = models.WritingResponse || mongoose.model('WritingResponse', WritingResponseSchema);
+
+export default WritingResponse;
+</file>
+
 <file path="src/types/reading.ts">
 export interface VocabularyWord {
   word: string;
@@ -1389,33 +2176,99 @@ export type VocabularyDictionary = Record<string, VocabularyWord>;
 }
 </file>
 
-<file path="package.json">
-{
-  "name": "jane_reading",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "lucide-react": "^1.17.0",
-    "mongoose": "^9.6.3",
-    "next": "16.2.7",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.7",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="README.md">
+node reset.mjs 1 reading
+node reset.mjs 1 literature
+</file>
+
+<file path="src/app/api/presentations/route.ts">
+import { NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/mongodb';
+import Presentation from '@/models/Presentation';
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    await connectToDatabase();
+
+    const newPresentation = await Presentation.create(body);
+
+    return NextResponse.json(
+      { message: 'Presentation saved successfully!', data: newPresentation },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Database Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to save presentation' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const studentName = searchParams.get('studentName') || 'Jane';
+    const weekId = searchParams.get('weekId') || 'Week 1';
+
+    await connectToDatabase();
+
+    // Find the newest presentation matching the student and week
+    const presentation = await Presentation.findOne({ studentName, weekId }).sort({ createdAt: -1 });
+
+    if (!presentation) {
+      return NextResponse.json({ message: 'No presentation found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: presentation }, { status: 200 });
+  } catch (error) {
+    console.error('Database Fetch Error:', error);
+    return NextResponse.json({ error: 'Failed to fetch presentation' }, { status: 500 });
   }
 }
 </file>
@@ -1463,9 +2316,437 @@ export default function RootLayout({
 }
 </file>
 
+<file path="src/app/week/1/monday/presentation/final/page.tsx">
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Printer, Home, ArrowLeft, Mic2, Sparkles } from "lucide-react";
+
+interface FinalSpeech {
+  intro: string;
+  body: string;
+  conclusion: string;
+}
+
+export default function FinalPresentationPage() {
+  const [speech, setSpeech] = useState<FinalSpeech | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFinalSpeech = async () => {
+      try {
+        // Try Cloud First
+        const response = await fetch('/api/presentations?studentName=Jane&weekId=Week 1');
+        if (response.ok) {
+          const json = await response.json();
+          if (json.data) {
+            setSpeech(json.data);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Cloud fetch failed");
+      }
+
+      // Fallback to Local Storage
+      const saved = localStorage.getItem('jane_final_speech');
+      if (saved) {
+        try {
+          setSpeech(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse local speech");
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchFinalSpeech();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-600 font-bold animate-pulse">Preparing your speech...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!speech) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
+        <h1 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">No speech draft found!</h1>
+        <p className="text-slate-600 mb-8 max-w-md">It looks like you haven't completed your presentation draft yet.</p>
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg"
+        >
+          <Home size={20} />
+          <span>Return Home</span>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto print:max-w-none">
+        {/* Header - Hidden in Print */}
+        <div className="mb-12 flex flex-col md:flex-row items-center justify-between gap-6 print:hidden">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
+              <Mic2 size={28} />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Your Final Presentation 🎤</h1>
+              <p className="text-slate-500 font-medium">Ready for the spotlight! Good luck!</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Link
+              href="/week/1/monday/presentation/structure"
+              className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+            >
+              <ArrowLeft size={18} />
+              <span>Edit Draft</span>
+            </Link>
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-100"
+            >
+              <Printer size={18} />
+              <span>Print / Save as PDF</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Main Cue Card */}
+        <div className="max-w-3xl mx-auto bg-white p-10 md:p-14 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] print:border-0 print:shadow-none print:p-0">
+          <div className="flex items-center gap-2 mb-12 text-indigo-600 font-black uppercase tracking-widest text-sm print:hidden">
+            <Sparkles size={16} />
+            <span>Digital Cue Card</span>
+          </div>
+
+          <div className="space-y-12">
+            {/* Introduction Section */}
+            <div className="mb-10 pl-6 border-l-4 border-blue-400">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-blue-100 text-blue-700 text-xs font-black px-2 py-1 rounded uppercase tracking-widest">Part 1</span>
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">Introduction</h3>
+              </div>
+              <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-serif">
+                {speech.intro || "No introduction drafted."}
+              </div>
+            </div>
+
+            {/* Main Body Section */}
+            <div className="mb-10 pl-6 border-l-4 border-amber-400">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-amber-100 text-amber-700 text-xs font-black px-2 py-1 rounded uppercase tracking-widest">Part 2</span>
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">Main Body</h3>
+              </div>
+              <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-serif">
+                {speech.body ? speech.body.replace(/------------------------/g, '') : "No body drafted."}
+              </div>
+            </div>
+
+            {/* Conclusion Section */}
+            <div className="mb-10 pl-6 border-l-4 border-emerald-400">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-emerald-100 text-emerald-700 text-xs font-black px-2 py-1 rounded uppercase tracking-widest">Part 3</span>
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">Conclusion</h3>
+              </div>
+              <div className="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap font-serif">
+                {speech.conclusion || "No conclusion drafted."}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-20 pt-12 border-t border-slate-100 text-center print:hidden">
+            <p className="text-slate-400 font-medium italic mb-8">
+              "Every great presentation starts with a single step. You've got this!"
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-10 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl"
+            >
+              <Home size={20} />
+              <span>Back to Dashboard</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="src/app/week/1/monday/presentation/structure/page.tsx">
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Play, List, Flag, ArrowLeft, Send } from "lucide-react";
+import { QUESTIONS } from "@/data/agentic-ai";
+
+export default function PresentationStructure() {
+  const router = useRouter();
+  const [introText, setIntroText] = useState("");
+  const [bodyText, setBodyText] = useState("");
+  const [conclusionText, setConclusionText] = useState("");
+
+  useEffect(() => {
+    const fetchDraft = async () => {
+      try {
+        // 1. Try to fetch from the cloud database first
+        const response = await fetch('/api/presentations?studentName=Jane&weekId=Week 1');
+        if (response.ok) {
+          const json = await response.json();
+          if (json.data) {
+            setIntroText(json.data.intro || "");
+            setBodyText(json.data.body || "");
+            setConclusionText(json.data.conclusion || "");
+            return; // Exit early if cloud data exists
+          }
+        }
+      } catch (e) {
+        console.error("Cloud fetch failed, falling back to local storage", e);
+      }
+
+      // 2. Fallback to Local Storage Full Draft
+      const savedDraft = localStorage.getItem('jane_final_speech');
+      if (savedDraft) {
+        try {
+          const parsedDraft = JSON.parse(savedDraft);
+          setIntroText(parsedDraft.intro || "");
+          setBodyText(parsedDraft.body || "");
+          setConclusionText(parsedDraft.conclusion || "");
+          return;
+        } catch (e) {
+          console.error("Failed to parse saved draft");
+        }
+      }
+
+      // 3. Fallback to Raw Q&A Answers
+      const savedAnswers = localStorage.getItem('jane_qa_answers');
+      if (savedAnswers) {
+        try {
+          const parsed = JSON.parse(savedAnswers);
+          const formattedBody = parsed.map((answer: string, index: number) => {
+            const questionText = QUESTIONS[index]?.text || `Question ${index + 1}`;
+            return `Q: ${questionText}\n${answer}`;
+          }).join('\n\n------------------------\n\n');
+          
+          setBodyText(formattedBody);
+        } catch (e) {
+          console.error("Failed to parse answers");
+        }
+      }
+    };
+
+    fetchDraft();
+  }, []);
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleFinish = async (e?: React.MouseEvent | React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // 0. Frontend Validation Guard
+    if (!introText.trim() || !bodyText.trim() || !conclusionText.trim()) {
+      alert("Please draft all three sections (Introduction, Body, and Conclusion) before saving!");
+      return;
+    }
+
+    setIsSaving(true);
+    const finalSpeech = {
+      studentName: 'Jane',
+      weekId: 'Week 1',
+      topic: 'Agentic AI',
+      intro: introText,
+      body: bodyText,
+      conclusion: conclusionText
+    };
+
+    // 1. Keep saving to local storage for immediate UI hydration
+    localStorage.setItem('jane_final_speech', JSON.stringify(finalSpeech));
+
+    // 2. Send the data to MongoDB
+    try {
+      const response = await fetch('/api/presentations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalSpeech),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save to database');
+      }
+
+      // 3. Navigate to the final view
+      router.push('/week/1/monday/presentation/final');
+    } catch (error) {
+      console.error(error);
+      // Use setTimeout to push the alert to the end of the execution queue
+      setTimeout(() => alert("There was an issue saving to the cloud, but your local draft is safe!"), 100);
+      router.push('/week/1/monday/presentation/final');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="flex items-center justify-between mb-12">
+        <Link
+          href="/week/1/monday/presentation"
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold"
+        >
+          <ArrowLeft size={20} />
+          <span>Back to Outline</span>
+        </Link>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Draft Your Presentation</h1>
+      </div>
+
+      <div className="space-y-12">
+        {/* Introduction */}
+        <section className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center">
+              <Play size={20} fill="currentColor" />
+            </div>
+            <h2 className="text-2xl font-black text-blue-900">1. Introduction (The Hook)</h2>
+          </div>
+
+          <div className="bg-white/60 rounded-2xl p-6 mb-6 border border-blue-100">
+            <h3 className="text-blue-700 font-bold text-sm uppercase tracking-wider mb-4">Recommended Phrases:</h3>
+            <ul className="space-y-3">
+              <li className="text-slate-700 italic font-medium">"Today, I'd like to explore a fascinating shift in technology..."</li>
+              <li className="text-slate-700 italic font-medium">"Have you ever wondered what happens when computers stop waiting for our commands?"</li>
+              <li className="text-slate-700 italic font-medium">"The purpose of my presentation is to compare..."</li>
+            </ul>
+          </div>
+
+          <textarea
+            value={introText}
+            onChange={(e) => setIntroText(e.target.value)}
+            className="w-full min-h-[150px] p-6 bg-white border-2 border-blue-100 rounded-2xl text-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-300"
+            placeholder="Draft your introduction here..."
+          />
+        </section>
+
+        {/* Body */}
+        <section className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-amber-600 text-white rounded-xl flex items-center justify-center">
+              <List size={20} />
+            </div>
+            <h2 className="text-2xl font-black text-amber-900">2. Body (The Evidence)</h2>
+          </div>
+
+          <div className="bg-white/60 rounded-2xl p-6 mb-6 border border-amber-100">
+            <h3 className="text-amber-700 font-bold text-sm uppercase tracking-wider mb-4">Transition & Evidence:</h3>
+            <ul className="space-y-3">
+              <li className="text-slate-700 italic font-medium">"To illustrate this point, consider..."</li>
+              <li className="text-slate-700 italic font-medium">"Furthermore, it is crucial to understand that..."</li>
+              <li className="text-slate-700 italic font-medium">"On the other hand, a major challenge is..."</li>
+            </ul>
+          </div>
+
+          <textarea
+            value={bodyText}
+            onChange={(e) => setBodyText(e.target.value)}
+            className="w-full min-h-[250px] p-6 bg-white border-2 border-amber-100 rounded-2xl text-lg focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all placeholder:text-slate-300"
+            placeholder="Draft the main body of your speech..."
+          />
+        </section>
+
+        {/* Conclusion */}
+        <section className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center">
+              <Flag size={20} fill="currentColor" />
+            </div>
+            <h2 className="text-2xl font-black text-emerald-900">3. Conclusion (The Takeaway)</h2>
+          </div>
+
+          <div className="bg-white/60 rounded-2xl p-6 mb-6 border border-emerald-100">
+            <h3 className="text-emerald-700 font-bold text-sm uppercase tracking-wider mb-4">Wrapping Up:</h3>
+            <ul className="space-y-3">
+              <li className="text-slate-700 italic font-medium">"Ultimately, the key takeaway is..."</li>
+              <li className="text-slate-700 italic font-medium">"To summarize, Agentic AI represents..."</li>
+              <li className="text-slate-700 italic font-medium">"Thank you for your time. I'd be happy to answer any questions."</li>
+            </ul>
+          </div>
+
+          <textarea
+            value={conclusionText}
+            onChange={(e) => setConclusionText(e.target.value)}
+            className="w-full min-h-[150px] p-6 bg-white border-2 border-emerald-100 rounded-2xl text-lg focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all placeholder:text-slate-300"
+            placeholder="Draft your concluding remarks..."
+          />
+        </section>
+      </div>
+
+      <div className="mt-12 flex flex-col items-center gap-6">
+        <button
+          onClick={handleFinish}
+          disabled={isSaving}
+          className="group flex items-center gap-3 px-12 py-6 bg-slate-900 text-white font-black rounded-3xl hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-2xl hover:shadow-slate-200 hover:-translate-y-1 text-xl"
+        >
+          <span>{isSaving ? 'Saving...' : 'Finish & Save'}</span>
+          <Send size={24} className={`group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform ${isSaving ? 'animate-pulse' : ''}`} />
+        </button>
+        <p className="text-slate-400 font-medium text-center">
+          Great job! Clicking above will save your draft and return you to the home dashboard.
+        </p>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "jane_reading",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "lucide-react": "^1.17.0",
+    "mongoose": "^9.6.3",
+    "next": "16.2.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
 <file path="src/app/page.tsx">
 import Link from "next/link";
-import { FileText, Calendar, Lock } from "lucide-react";
+import { FileText, Calendar, Lock, BookOpen, Gamepad2, BookOpenCheck } from "lucide-react";
 
 export default function Home() {
   const weeks = [
@@ -1508,6 +2789,27 @@ export default function Home() {
                 >
                   <FileText size={18} />
                   <span className="font-semibold text-sm">📄 Monday Reading Material</span>
+                </Link>
+                <Link
+                  href="/week/1/literature"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors border border-slate-100"
+                >
+                  <BookOpen size={18} />
+                  <span className="font-semibold text-sm">📚 Literature Homework</span>
+                </Link>
+                <Link
+                  href="/week/1/vocabmon"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 text-slate-700 hover:bg-rose-50 hover:text-rose-700 transition-colors border border-slate-100"
+                >
+                  <Gamepad2 size={18} />
+                  <span className="font-semibold text-sm">👾 Vocabmon Practice</span>
+                </Link>
+                <Link
+                  href="/week/1/reading-comprehension"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition-colors border border-slate-100"
+                >
+                  <BookOpenCheck size={18} />
+                  <span className="font-semibold text-sm">📝 Reading Comprehension</span>
                 </Link>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 border-dashed text-slate-400 text-xs font-medium italic">
                   More coming soon...

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, XCircle, ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, ArrowRight, RotateCcw, Highlighter, Eraser } from "lucide-react";
 import { READING_ARTICLE, READING_QUESTIONS } from "@/data/reading-comprehension";
 
 export default function ReadingComprehensionPage() {
@@ -13,6 +13,39 @@ export default function ReadingComprehensionPage() {
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+
+  // --- HIGHLIGHTER STATE ---
+  const [articleHtml, setArticleHtml] = useState([...READING_ARTICLE.content]);
+  const [highlightColor, setHighlightColor] = useState("bg-yellow-200");
+
+  const handleHighlight = (idx: number, e: React.MouseEvent<HTMLParagraphElement>) => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+
+    // Ensure selection is inside the current paragraph to prevent cross-element bugs
+    if (!e.currentTarget.contains(selection.anchorNode)) return;
+
+    const range = selection.getRangeAt(0);
+    const span = document.createElement("span");
+    span.className = `${highlightColor} px-1 rounded transition-colors`;
+    
+    try {
+      // Wrap the selected text in the colored span
+      const content = range.extractContents();
+      span.appendChild(content);
+      range.insertNode(span);
+
+      // Save the new HTML to state so it survives React re-renders
+      const updatedHtml = [...articleHtml];
+      updatedHtml[idx] = e.currentTarget.innerHTML;
+      setArticleHtml(updatedHtml);
+
+      // Clear the selection
+      selection.removeAllRanges();
+    } catch (err) {
+      console.error("Highlighting error:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -116,14 +149,50 @@ export default function ReadingComprehensionPage() {
         
         {/* Left Side: Article */}
         <div className="lg:w-1/2 h-1/2 lg:h-full border-b lg:border-b-0 lg:border-r border-slate-200 bg-white overflow-y-auto p-8 md:p-12 scroll-smooth">
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-8 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">
             {READING_ARTICLE.title}
           </h1>
+
+          {/* Highlighter Toolbar */}
+          <div className="flex items-center gap-4 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-10">
+            <div className="flex items-center gap-2 mr-auto">
+              <Highlighter size={20} className="text-slate-500" />
+              <span className="font-bold text-slate-700 text-sm uppercase tracking-wider hidden sm:inline">Highlighter</span>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setHighlightColor('bg-yellow-200')} 
+                className={`w-8 h-8 rounded-full bg-yellow-200 border-2 transition-all ${highlightColor === 'bg-yellow-200' ? 'border-yellow-500 scale-110 ring-4 ring-yellow-100' : 'border-transparent hover:scale-105'}`} 
+                title="Yellow"
+              />
+              <button 
+                onClick={() => setHighlightColor('bg-emerald-200')} 
+                className={`w-8 h-8 rounded-full bg-emerald-200 border-2 transition-all ${highlightColor === 'bg-emerald-200' ? 'border-emerald-500 scale-110 ring-4 ring-emerald-100' : 'border-transparent hover:scale-105'}`} 
+                title="Green"
+              />
+              <button 
+                onClick={() => setHighlightColor('bg-pink-200')} 
+                className={`w-8 h-8 rounded-full bg-pink-200 border-2 transition-all ${highlightColor === 'bg-pink-200' ? 'border-pink-500 scale-110 ring-4 ring-pink-100' : 'border-transparent hover:scale-105'}`} 
+                title="Pink"
+              />
+            </div>
+            <div className="w-px h-6 bg-slate-300 mx-2" />
+            <button 
+              onClick={() => setArticleHtml([...READING_ARTICLE.content])} 
+              className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-rose-600 transition-colors"
+            >
+              <Eraser size={18} /> <span className="hidden sm:inline">Clear</span>
+            </button>
+          </div>
+
           <div className="space-y-6">
-            {READING_ARTICLE.content.map((paragraph, idx) => (
-              <p key={idx} className="text-lg text-slate-700 leading-relaxed font-serif">
-                {paragraph}
-              </p>
+            {articleHtml.map((htmlString, idx) => (
+              <p 
+                key={idx} 
+                onMouseUp={(e) => handleHighlight(idx, e)}
+                dangerouslySetInnerHTML={{ __html: htmlString }}
+                className="text-lg text-slate-700 leading-relaxed font-serif selection:bg-slate-200"
+              />
             ))}
           </div>
         </div>

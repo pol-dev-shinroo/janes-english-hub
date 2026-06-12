@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Calendar, Lock, BookOpen, Gamepad2 } from "lucide-react";
+import { FileText, Calendar, Lock, BookOpen, Gamepad2, BookOpenCheck } from "lucide-react";
 
 export default function Home() {
   const weeks = [
@@ -56,6 +56,13 @@ export default function Home() {
                 >
                   <Gamepad2 size={18} />
                   <span className="font-semibold text-sm">👾 Vocabmon Practice</span>
+                </Link>
+                <Link
+                  href="/week/1/reading-comprehension"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 text-slate-700 hover:bg-sky-50 hover:text-sky-700 transition-colors border border-slate-100"
+                >
+                  <BookOpenCheck size={18} />
+                  <span className="font-semibold text-sm">📝 Reading Comprehension</span>
                 </Link>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 border-dashed text-slate-400 text-xs font-medium italic">
                   More coming soon...
